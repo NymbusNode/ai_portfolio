@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+jinja2
+httptools
+asyncpg
+SQLAlchemy[asyncio]
+alembic
+psycopg2-binary
+pydantic
+pydantic-ai
+grpcio
+grpcio-tools
+protobuf
+pgvector
+python-dotenv

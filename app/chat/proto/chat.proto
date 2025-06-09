@@ -1,0 +1,12 @@
+syntax = "proto3";
+package portfolio_ai.chat;
+
+message ChatMessage {
+  string id = 1;
+  string content = 2;
+  string role = 3; // "user" or "assistant"
+}
+
+service ChatService {
+  rpc StreamChat (stream ChatMessage) returns (stream ChatMessage);
+}

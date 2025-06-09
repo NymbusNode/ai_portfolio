@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DJ Brown | Portfolio</title>
+    <link href="/static/css/tailwind.css" rel="stylesheet" />
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+  </head>
+  <body class="min-h-full bg-white text-gray-900">
+    <header class="sticky top-0 bg-white/70 backdrop-blur border-b">
+      <nav class="max-w-7xl mx-auto flex items-center justify-between p-4">
+        <span class="font-bold text-lg">DJ Brown</span>
+        <a href="#contact" class="text-teal-600">Contact</a>
+      </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 py-24 px-4">
+      <div class="flex-1 space-y-6">
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight">
+          Turning complex systems into elegant software.
+        </h1>
+        <p class="text-xl text-gray-600">
+          Backend Engineer · AI & Crypto · ex‑Bank of America
+        </p>
+        <button
+          id="chat‑open"
+          class="px-6 py-3 rounded-full bg-teal-600 text-white hover:bg-teal-700 transition"
+        >Ask me anything →</button>
+      </div>
+      <img src="/static/img/profile.jpg" alt="DJ Brown" class="w-64 h-64 rounded-2xl object-cover" />
+    </section>
+
+    <!-- Chat widget (HTMX inline) -->
+    <div
+      id="chat‑panel"
+      class="fixed bottom-4 right-4 w-96 max-w-full bg-white border rounded-2xl shadow-xl hidden flex flex-col"
+    >
+      <div class="p-4 border-b font-semibold">Chat with DJ’s AI</div>
+      <div id="chat‑log" class="flex-1 p-4 overflow-y-auto space-y-2"></div>
+      <form
+        hx-post="/chat"
+        hx-trigger="submit"
+        hx-target="#chat‑log"
+        hx-swap="afterend"
+        class="flex gap-2 p-4 border-t"
+      >
+        <input
+          type="text"
+          name="message"
+          class="flex-1 border rounded-lg px-3 py-2"
+          placeholder="Type your question..."
+        />
+        <button class="px-4 py-2 bg-teal-600 text-white rounded-lg">Send</button>
+      </form>
+    </div>
+
+    <script>
+      const btn = document.getElementById('chat‑open');
+      const panel = document.getElementById('chat‑panel');
+      btn.addEventListener('click', () => panel.classList.toggle('hidden'));
+    </script>
+  </body>
+</html>

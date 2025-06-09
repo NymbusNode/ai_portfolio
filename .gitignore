@@ -1,0 +1,24 @@
+# Python virtual environments
+.portfolio_venv/
+.venv/
+venv/
+env/
+
+# Byte‑compiled / optimized / packaged
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+.eggs/
+*.egg-info/
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

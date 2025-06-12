@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import asyncio
 from .schemas import ChatRequest, ChatResponse
 from .chat.agent import PortfolioAgent
 
 app = FastAPI(title="Portfolio AI")
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 agent = PortfolioAgent()
 

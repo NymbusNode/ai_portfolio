@@ -3,7 +3,7 @@
 .venv/
 venv/
 env/
-
+.env
 # Byte‑compiled / optimized / packaged
 __pycache__/
 *.py[cod]

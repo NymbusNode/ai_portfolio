@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, func
-from sqlalchemy.dialects.postgresql import VECTOR
+from pgvector.sqlalchemy import Vector
 from .db import Base
 
 class ResumeChunk(Base):
@@ -7,5 +7,5 @@ class ResumeChunk(Base):
 
     id = Column(Integer, primary_key=True)
     text = Column(String, nullable=False)
-    embedding = Column(VECTOR(768))  # pgvector extension
+    embedding = Column(Vector(768))  # pgvector extension
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -195,14 +195,13 @@
         </button>
       </div>
 
-      <div id="chat-log" class="flex-1 p-4 overflow-y-auto space-y-2 text-sm"></div>
-
-      <form hx-post="/chat" hx-trigger="submit" hx-target="#chat-log" hx-swap="afterend"
-            class="flex gap-2 p-4 border-t dark:border-slate-700">
-        <input name="message"
-               class="flex-1 border rounded-lg px-3 py-2 dark:bg-slate-800 dark:border-slate-600 focus:outline-none"
-               placeholder="Ask something…" required />
-        <button class="px-4 py-2 bg-teal-600 text-white rounded-lg">Send</button>
+      <div id="chat-log" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm h-64"></div>
+      <form id="chat-form" class="flex gap-2 p-4 border-t dark:border-slate-700">
+        <input type="hidden" name="model" value="gpt-4o">
+        <input id="chat-input" name="message" 
+              class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 dark:bg-slate-800 dark:border-slate-700"
+              placeholder="Ask something…" required>
+        <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">Send</button>
       </form>
     </div>
 
@@ -224,6 +223,76 @@
       document.getElementById('theme-toggle')
               .addEventListener('click', () =>
                 document.documentElement.classList.toggle('dark'));
+      // Chat functionality
+      const chatLog = document.getElementById('chat-log');
+      const chatForm = document.getElementById('chat-form');
+      const chatInput = document.getElementById('chat-input');
+
+      chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const message = chatInput.value;
+        if (!message.trim()) return;
+        
+        // Add user message to chat
+        addMessageToChat('user', message);
+        
+        // Clear input
+        chatInput.value = '';
+        
+        // Create assistant message container
+        const assistantMsg = addMessageToChat('assistant', '');
+        
+        // Connect to SSE stream
+        const formData = new FormData(chatForm);
+        const response = await fetch('/chat', {
+          method: 'POST',
+          body: formData
+        });
+        
+        // Process the stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        let buffer = '';
+        
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          
+          // Process any complete SSE messages in the buffer
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop(); // Keep the last incomplete chunk in buffer
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6); // Remove 'data: ' prefix
+              assistantMsg.textContent += data;
+            }
+          }
+        }
+      });
+
+      function addMessageToChat(role, content) {
+        const msgDiv = document.createElement('div');
+        const roleLabel = role === 'user' ? 'You' : 'DJ\'s AI';
+        
+        msgDiv.className = `chat-message ${role} p-3 rounded-lg ${
+          role === 'user' ? 'bg-teal-50 dark:bg-slate-700 ml-8' : 'bg-slate-100 dark:bg-slate-800 mr-8'
+        }`;
+        
+        msgDiv.innerHTML = `
+          <div class="font-medium text-xs text-slate-500 mb-1">${roleLabel}</div>
+          <div class="message-content">${content}</div>
+        `;
+        
+        chatLog.appendChild(msgDiv);
+        chatLog.scrollTop = chatLog.scrollHeight;
+        
+        return msgDiv.querySelector('.message-content');
+      }
     </script>
   </body>
 </html>

@@ -1,30 +1,59 @@
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, Form
 from fastapi.responses import HTMLResponse, StreamingResponse
+from sse_starlette.sse import EventSourceResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import asyncio
 from .schemas import ChatRequest, ChatResponse
-from .chat.agent import PortfolioAgent
+from .chat.agent import AgentManager
+from app.config import settings
+import json
 
 app = FastAPI(title="Portfolio AI")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-agent = PortfolioAgent()
+
+agentMgr = AgentManager()
+agent = agentMgr.agent if hasattr(agentMgr, 'agent') else agentMgr.initAgent()
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/chat")
-async def chat(req: ChatRequest):
-    answer = await agent.chat(req.message)
-    return ChatResponse(answer=answer)
+async def chat(
+    message: str = Form(...),
+    model: str = Form(None),
+    request: Request = None,
+):
+    #TODO:FEtoBE comm issue- not getting message argument, and not return response to UI
+    #First check frontend and then check the implementation of EventSourceResponse object, and yield, 
+    # EventSourceResponse may not be needed
+    print(f"Received message: {message}\n model: {model}\n request: {request}")
+    if model:
+        settings.default_model = model
+    print(f"Received message: {message} with model: {settings.default_model}")
+    async def event_generator():
+        print(f"user message: {message}")
+        try:
+            async with agent.run_stream(user_prompt=message) as response:
+                async for chunk in response.stream_text(delta=True):
+                    print(f"Streaming message: {chunk}")
+                    yield json.dumps({"event": "message", "data": chunk})
+        except Exception as e:
+            print(f"Error in chat stream: {e}")
+            yield json.dumps({"event": "error", "data": str(e)})
 
+    return EventSourceResponse(event_generator())
+
+
+'''
 @app.get("/chat/stream")
 async def chat_stream(message: str):
     async def event_generator():
         answer = await agent.chat(message)
         for token in answer.split():
-            yield f"data: {token} \n\n"
+            yield json.dumps({"event": "message", "data": token})
             await asyncio.sleep(0.05)
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+'''

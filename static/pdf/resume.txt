@@ -1,0 +1,18 @@
+
+        DJ Brown - Software Engineer & AI Developer
+        
+        EXPERIENCE
+        Senior Software Engineer, AI Systems
+        2023-Present
+        - Developed RAG-based portfolio AI assistant using FastAPI, pydantic-ai, and PostgreSQL
+        - Implemented streaming responses and tool-calling capabilities
+        - Optimized vector search for quick context retrieval
+        
+        Software Engineer, Full Stack
+        2020-2023
+        - Built scalable applications using Python, JavaScript, and cloud services
+        - Led development of internal tools that increased team productivity
+        
+        SKILLS
+        Python, TypeScript, FastAPI, SQLAlchemy, PostgreSQL, Docker, gRPC, OpenAI API
+        

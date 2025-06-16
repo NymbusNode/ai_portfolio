@@ -56,6 +56,11 @@ class AgentManager:
         self.logger.info(f"Using instructions: {self.instructions[:25]}...")  # Log first 25 chars
         return self.instructions
 
+    def updateChatHistory(self, chatHistory: list[dict]):
+        """Update the agent's chat history."""
+        self.chatHistory = chatHistory
+        self.logger.info(f"Updated chat history with {len(chatHistory)} messages.")
+
 async def test_async():
     agentMgr = AgentManager()
     agent = agentMgr.agent if hasattr(agentMgr, 'agent') else agentMgr.initAgent()

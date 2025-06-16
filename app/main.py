@@ -42,25 +42,24 @@ async def chat(
             sleep_time = 0.2  # Simulate processing time
             yield f"data: {json.dumps({'event': 'message', 'data': msg})}\n\n"
 
-
     async def event_generator():
-       print(f"user message: {message}")
-       try:
-           async with agent.run_stream(user_prompt=message) as response:
-               async for chunk in response.stream_text(delta=True):
-                   print(f"Streaming message: {chunk}")
-                   payload = {"data": chunk}
-                   # yield a proper SSE "data:" line
-                   yield f"data: {json.dumps(payload)}\n\n"
-                   # let the event loop breathe
-                   await asyncio.sleep(0)
-       except Exception as e:
-           print(f"Error in chat stream: {e}")
-           # SSE error event (optional)
-           payload = {"data": "Chat agent is unavailable. Try again later."}
-           yield f"data: {json.dumps(payload)}\n\n"
+        print(f"user message: {message}")
+        try:
+            async with agent.run_stream(user_prompt=message, message_history=agentMgr.chatHistory) as response:
+                async for chunk in response.stream_text(delta=True):
+                    print(f"Streaming message: {chunk}")
+                    payload = {"data": chunk}
+                    # yield a proper SSE "data:" line
+                    yield f"data: {json.dumps(payload)}\n\n"
+                    # let the event loop breathe
+                    await asyncio.sleep(0)
+            agentMgr.chatHistory = response.all_messages()
+        except Exception as e:
+            print(f"Error in chat stream: {e}")
+            # SSE error event (optional)
+            payload = {"data": "Chat agent is unavailable. Try again later."}
+            yield f"data: {json.dumps(payload)}\n\n"
 
-   # Use StreamingResponse directly:
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream"

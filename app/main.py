@@ -33,18 +33,37 @@ async def chat(
     if model:
         settings.default_model = model
     print(f"Received message: {message} with model: {settings.default_model}")
-    async def event_generator():
-        print(f"user message: {message}")
-        try:
-            async with agent.run_stream(user_prompt=message) as response:
-                async for chunk in response.stream_text(delta=True):
-                    print(f"Streaming message: {chunk}")
-                    yield json.dumps({"event": "message", "data": chunk})
-        except Exception as e:
-            print(f"Error in chat stream: {e}")
-            yield json.dumps({"event": "error", "data": str(e)})
 
-    return EventSourceResponse(event_generator())
+    def test_generator():
+        print(f"test_generator called with message: {message}")
+        response= ['this is', 'a test message,', 'for the', 'user message:',f'{message}']
+        for msg in response:
+            print(f"Yielding message: {msg}")
+            sleep_time = 0.2  # Simulate processing time
+            yield f"data: {json.dumps({'event': 'message', 'data': msg})}\n\n"
+
+
+    async def event_generator():
+       print(f"user message: {message}")
+       try:
+           async with agent.run_stream(user_prompt=message) as response:
+               async for chunk in response.stream_text(delta=True):
+                   print(f"Streaming message: {chunk}")
+                   payload = {"data": chunk}
+                   # yield a proper SSE "data:" line
+                   yield f"data: {json.dumps(payload)}\n\n"
+                   # let the event loop breathe
+                   await asyncio.sleep(0)
+       except Exception as e:
+           print(f"Error in chat stream: {e}")
+           # SSE error event (optional)
+           yield f"event: error\ndata: {str(e)}\n\n"
+
+   # Use StreamingResponse directly:
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream"
+    )
 
 
 '''

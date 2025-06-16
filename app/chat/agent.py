@@ -63,9 +63,14 @@ async def test_async():
         async for message in result.stream_text(delta=True):
             print(message)
 
+async def test_async_await():
+    agentMgr = AgentManager()
+    agent = agentMgr.agent if hasattr(agentMgr, 'agent') else agentMgr.initAgent()
+    async with agent.run_stream('Hi how are you') as result:
+        message = await result.get_output()
+        print(message)
 if __name__ == "__main__":
-    pass
-    #asyncio.run(test_async())
+    asyncio.run(test_async_await())
     #print(result.output)
 '''
 class PortfolioAgent(Agent):

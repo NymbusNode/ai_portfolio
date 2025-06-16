@@ -281,17 +281,18 @@
           if (done) break;
           
           buffer += decoder.decode(value, { stream: true });
-          console.log('Buffer:', buffer);
           // Process any complete SSE messages in the buffer
           const lines = buffer.split('\n\n');
-          console.log('Received chunk:', lines);
           buffer = lines.pop(); // Keep the last incomplete chunk in buffer
           
           for (const line of lines) {
             if (line.startsWith('data: ')) {
-              console.log('Received data:', line);
-              const payload = JSON.parse(line.slice(6));
-              assistantMsg.textContent += payload.data;
+              try {
+                const payload = JSON.parse(line.slice(6));
+                assistantMsg.textContent += payload.data;
+              } catch(err) {
+                console.error('Bad chunk:', line, err);
+              }
             }
           }
         }

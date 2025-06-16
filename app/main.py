@@ -57,7 +57,8 @@ async def chat(
        except Exception as e:
            print(f"Error in chat stream: {e}")
            # SSE error event (optional)
-           yield f"event: error\ndata: {str(e)}\n\n"
+           payload = {"data": "Chat agent is unavailable. Try again later."}
+           yield f"data: {json.dumps(payload)}\n\n"
 
    # Use StreamingResponse directly:
     return StreamingResponse(

@@ -14,6 +14,9 @@
     <!-- Lucide icons -->
     <script src="https://unpkg.com/lucide@0.263.0"></script>
 
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
       /* subtle animated dotted background behind the hero */
       .dots-bg:before {
@@ -26,6 +29,46 @@
         z-index:-1;
       }
       @keyframes move { to { background-position: 1000px 0; } }
+
+      /* Add this to your existing style section */
+      .message-content a {
+        color: #0d9488; /* teal-600 */
+        text-decoration: underline;
+      }
+      .message-content code {
+        background: rgba(0,0,0,0.05);
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+      .dark .message-content code {
+        background: rgba(255,255,255,0.1);
+      }
+      .message-content ul, .message-content ol {
+        padding-left: 1.5em;
+        margin: 0.5em 0;
+      }
+      .message-content ul li {
+        list-style-type: disc;
+      }
+      .message-content ol li {
+        list-style-type: decimal;
+      }
+      .message-content table {
+        border-collapse: collapse;
+        margin: 0.5em 0;
+        font-size: 0.9em;
+      }
+      .message-content th, .message-content td {
+        border: 1px solid #e2e8f0;
+        padding: 0.25em 0.5em;
+      }
+      .dark .message-content th, .dark .message-content td {
+        border-color: #334155;
+      }
+      .message-content p {
+        margin: 0.5em 0;
+      }
     </style>
   </head>
 
@@ -215,7 +258,7 @@
         </button>
       </div>
 
-      <div id="chat-log" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm h-64"></div>
+      <div id="chat-log" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm h-96"></div>
       <form id="chat-form" class="flex gap-2 p-4 border-t dark:border-slate-700">
         <input type="hidden" name="model" value="gpt-4o">
         <input id="chat-input" name="message" 
@@ -289,7 +332,10 @@
             if (line.startsWith('data: ')) {
               try {
                 const payload = JSON.parse(line.slice(6));
-                assistantMsg.textContent += payload.data;
+                // Store the accumulated text and render it with markdown
+                assistantMsg.fullText = (assistantMsg.fullText || '') + payload.data;
+                // Use marked.js to convert markdown to HTML
+                assistantMsg.innerHTML = marked.parse(assistantMsg.fullText);
               } catch(err) {
                 console.error('Bad chunk:', line, err);
               }
@@ -298,6 +344,7 @@
         }
       });
 
+      // Replace the addMessageToChat function
       function addMessageToChat(role, content) {
         const msgDiv = document.createElement('div');
         const roleLabel = role === 'user' ? 'You' : 'Daryck\'s AI';
@@ -306,15 +353,28 @@
           role === 'user' ? 'bg-teal-50 dark:bg-slate-700 ml-8' : 'bg-slate-100 dark:bg-slate-800 mr-8'
         }`;
         
-        msgDiv.innerHTML = `
-          <div class="font-medium text-xs text-slate-500 mb-1">${roleLabel}</div>
-          <div class="message-content">${content}</div>
-        `;
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'font-medium text-xs text-slate-500 mb-1';
+        labelDiv.textContent = roleLabel;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content prose prose-sm max-w-none dark:prose-invert';
+        
+        if (role === 'user') {
+          // For user messages, just use text
+          contentDiv.textContent = content;
+        } else {
+          // For AI messages, initialize with empty content
+          contentDiv.fullText = '';
+        }
+        
+        msgDiv.appendChild(labelDiv);
+        msgDiv.appendChild(contentDiv);
         
         chatLog.appendChild(msgDiv);
         chatLog.scrollTop = chatLog.scrollHeight;
         
-        return msgDiv.querySelector('.message-content');
+        return contentDiv;
       }
     </script>
   </body>
